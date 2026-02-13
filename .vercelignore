@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+.venv/
+env/
+.git/
+current_deps.txt
+test_model.py
+report_extraction.txt
+Fitness_Tracker_AICTE_Report by Gagan B.pdf
+extract_pdf.py
+generate_visuals.py
+*.ipynb

@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fitness Tracker | Calorie Prediction Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body class="dark-mode">
+    <div class="sidebar">
+        <div class="logo">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round" style="color: white; margin-right: 0.5rem;">
+                <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+            </svg>
+            <span>FitPredict</span>
+        </div>
+        <nav>
+            <a href="#" class="active" onclick="showSection('dashboard')">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" style="margin-right: 0.8rem;">
+                    <line x1="18" y1="20" x2="18" y2="10"></line>
+                    <line x1="12" y1="20" x2="12" y2="4"></line>
+                    <line x1="6" y1="20" x2="6" y2="14"></line>
+                </svg>
+                Dashboard</a>
+            <a href="#" onclick="showSection('predict')">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" style="margin-right: 0.8rem;">
+                    <rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect>
+                    <line x1="8" y1="6" x2="16" y2="6"></line>
+                    <line x1="8" y1="10" x2="16" y2="10"></line>
+                    <line x1="8" y1="14" x2="16" y2="14"></line>
+                    <line x1="8" y1="18" x2="16" y2="18"></line>
+                </svg>
+                Predictor</a>
+            <a href="#" onclick="showSection('about')">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" style="margin-right: 0.8rem;">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="16" x2="12" y2="12"></line>
+                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                </svg>
+                About</a>
+        </nav>
+        <div class="user-profile">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round"
+                style="background: var(--card-bg); border-radius: 10px; padding: 5px;">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+            <div class="user-info">
+                <span class="name">{{ username or 'Guest User' }}</span>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    {% if role == 'admin' %}
+                    <a href="{{ url_for('admin_dashboard') }}"
+                        style="color: #833ab4; font-size: 0.75rem; text-decoration: none; font-weight: 600;">Admin</a>
+                    <span style="color: var(--text-muted); font-size: 0.75rem;">•</span>
+                    {% endif %}
+                    <a href="{{ url_for('logout') }}"
+                        style="color: var(--text-muted); font-size: 0.75rem; text-decoration: none;">Sign Out</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <main class="content">
+        <header>
+            <div class="header-left">
+                <h1 id="section-title">Health Dashboard</h1>
+                <p id="section-desc">Overview of your fitness metrics and statistics.</p>
+            </div>
+            <div class="header-right">
+                <div class="search-bar">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-muted);">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                    <input type="text" placeholder="Search stats...">
+                </div>
+                <button class="notification-btn" title="View notifications">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                    </svg>
+                </button>
+            </div>
+        </header>
+
+        <section id="dashboard-section" class="active">
+            <div class="stats-grid">
+                <div class="stat-card glass animate-up" data-delay="0.1s">
+                    <div class="stat-icon purple">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path
+                                d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.5 3.5 6.5 1.5 2 2 4.5 2 7a6 6 0 1 1-12 0c0-1.38.5-3 1-4.5 1-1.5 1.5-2.5 1-3.5-.5-1-1.5-1-2-1.5.5 1.5.5 3 0 4.5z">
+                            </path>
+                        </svg>
+                    </div>
+                    <div class="stat-info">
+                        <h3>Avg Calories</h3>
+                        <p id="avg-calories">--</p>
+                        <span class="trend up"><svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="18 15 12 9 6 15"></polyline>
+                            </svg> 5.2%</span>
+                    </div>
+                </div>
+                <div class="stat-card glass animate-up" data-delay="0.2s">
+                    <div class="stat-icon blue">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                        </svg>
+                    </div>
+                    <div class="stat-info">
+                        <h3>Avg Duration</h3>
+                        <p id="avg-duration">-- min</p>
+                        <span class="trend up"><svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="18 15 12 9 6 15"></polyline>
+                            </svg> 2.1%</span>
+                    </div>
+                </div>
+                <div class="stat-card glass animate-up" data-delay="0.3s">
+                    <div class="stat-icon green">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path
+                                d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l8.84-8.84 1.06-1.06a5.5 5.5 0 0 0 0-7.78z">
+                            </path>
+                        </svg>
+                    </div>
+                    <div class="stat-info">
+                        <h3>Avg Heart Rate</h3>
+                        <p id="avg-heart-rate">-- bpm</p>
+                        <span class="trend down"><svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg> 0.8%</span>
+                    </div>
+                </div>
+                <div class="stat-card glass animate-up" data-delay="0.4s">
+                    <div class="stat-icon orange">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon
+                                points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+                            </polygon>
+                        </svg>
+                    </div>
+                    <div class="stat-info">
+                        <h3>Fitness Score</h3>
+                        <p id="fitness-score">84/100</p>
+                        <span class="label">Health Status: Good</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="charts-container">
+                <div class="chart-card glass animate-up" data-delay="0.5s">
+                    <h3>Age Distribution</h3>
+                    <div class="canvas-wrapper">
+                        <canvas id="ageChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card glass animate-up" data-delay="0.6s">
+                    <h3>BMI Distribution</h3>
+                    <div class="canvas-wrapper">
+                        <canvas id="bmiChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- New Trends Section -->
+            <div class="charts-container trends-grid">
+                <div class="chart-card glass animate-up" data-delay="0.7s">
+                    <h3>Daily Step Count</h3>
+                    <div class="canvas-wrapper">
+                        <canvas id="stepsChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card glass animate-up" data-delay="0.8s">
+                    <h3>Heart Rate Trends</h3>
+                    <div class="canvas-wrapper">
+                        <canvas id="heartRateTrendChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card glass animate-up" data-delay="0.9s">
+                    <h3>Calories Burned Trends</h3>
+                    <div class="canvas-wrapper">
+                        <canvas id="caloriesTrendChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card glass animate-up" data-delay="1.0s">
+                    <h3>Sleep Quality Report</h3>
+                    <div class="canvas-wrapper">
+                        <canvas id="sleepChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card glass animate-up" data-delay="1.1s">
+                    <h3>Active vs Inactive Time</h3>
+                    <div class="canvas-wrapper">
+                        <canvas id="activeTimeChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card glass animate-up" data-delay="1.2s">
+                    <h3>Health Insights (SpO2 & Stress)</h3>
+                    <div class="canvas-wrapper">
+                        <canvas id="healthInsightsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- New Static Insights Section (Figures from Report) -->
+            <div class="section-header">
+                <h2>Data Exploration Insights</h2>
+                <p>Static visualizations from the AICTE report analysis.</p>
+            </div>
+            <div class="charts-container">
+                <div class="chart-card glass animate-up" data-delay="1.3s">
+                    <h3>Correlation Heatmap (Figure 9)</h3>
+                    <div class="img-wrapper">
+                        <img src="{{ url_for('static', filename='images/correlation_heatmap.png') }}"
+                            alt="Correlation Heatmap">
+                    </div>
+                </div>
+                <div class="chart-card glass animate-up" data-delay="1.4s">
+                    <h3>Null Values Check (Figure 8)</h3>
+                    <div class="img-wrapper">
+                        <img src="{{ url_for('static', filename='images/null_values.png') }}" alt="Null Values Heatmap">
+                    </div>
+                </div>
+                <div class="chart-card glass animate-up" data-delay="1.5s">
+                    <h3>Outlier Detection (Figure 10)</h3>
+                    <div class="img-wrapper">
+                        <img src="{{ url_for('static', filename='images/outliers_boxplot.png') }}"
+                            alt="Outliers Boxplot">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="predict-section">
+            <div class="predictor-container">
+                <div class="predictor-form glass animate-up">
+                    <h2>Calorie Burn Predictor</h2>
+                    <p>Enter your activity details to calculate estimated calories burned.</p>
+                    <form id="prediction-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="gender">Gender</label>
+                                <select name="gender" id="gender" title="Select your gender" required>
+                                    <option value="male">Male</option>
+                                    <option value="female">Female</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="age">Age (years)</label>
+                                <input type="number" name="age" id="age" value="25" min="10" max="100"
+                                    title="Enter your age" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="height">Height (cm)</label>
+                                <input type="number" name="height" id="height" value="175" min="100" max="250"
+                                    title="Enter your height" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="weight">Weight (kg)</label>
+                                <input type="number" name="weight" id="weight" value="70" min="30" max="200"
+                                    title="Enter your weight" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="duration">Duration (min)</label>
+                                <input type="number" name="duration" id="duration" value="30" min="1" max="120"
+                                    title="Enter exercise duration" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="heart_rate">Heart Rate (bpm)</label>
+                                <input type="number" name="heart_rate" id="heart_rate" value="110" min="40" max="220"
+                                    title="Enter peak heart rate" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="body_temp">Body Temperature (°C)</label>
+                            <input type="number" step="0.1" name="body_temp" id="body_temp" value="37.5" min="35"
+                                max="43" title="Enter body temperature" required>
+                        </div>
+                        <button type="submit" class="submit-btn" title="Calculate calories">Calculate Calories
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+                                style="margin-left: 0.5rem;">
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                                <polyline points="12 5 19 12 12 19"></polyline>
+                            </svg>
+                        </button>
+                    </form>
+                </div>
+
+                <div class="result-card glass animate-up" id="prediction-result">
+                    <div class="result-header">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            style="margin-bottom: 0.5rem; color: #fd1d1d;">
+                            <path
+                                d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.5 3.5 6.5 1.5 2 2 4.5 2 7a6 6 0 1 1-12 0c0-1.38.5-3 1-4.5 1-1.5 1.5-2.5 1-3.5-.5-1-1.5-1-2-1.5.5 1.5.5 3 0 4.5z">
+                            </path>
+                        </svg>
+                        <h3>Estimated Burn</h3>
+                    </div>
+                    <div class="result-value">
+                        <span id="calories-result">0.00</span>
+                        <span class="unit">kcal</span>
+                    </div>
+                    <div class="result-footer">
+                        <div class="accuracy">
+                            <span>Model Reliability</span>
+                            <div class="progress-bar" title="Predictive model reliability">
+                                <div class="progress" style="width: 96%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="about-section">
+            <div class="about-card glass animate-up">
+                <h2>About FitPredict</h2>
+                <p>FitPredict uses advanced Linear Regression algorithms to predict calories burned during exercise
+                    based on physiological and biometric data.</p>
+                <div class="tech-stack">
+                    <h3>Powered By</h3>
+                    <ul>
+                        <li>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                style="margin-right: 0.5rem;">
+                                <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                                <path d="M2 17l10 5 10-5"></path>
+                                <path d="M2 12l10 5 10-5"></path>
+                            </svg>
+                            Flask & Scikit-Learn
+                        </li>
+                        <li>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                style="margin-right: 0.5rem;">
+                                <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+                                <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
+                                <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
+                            </svg>
+                            15,000+ Training Samples
+                        </li>
+                        <li>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                style="margin-right: 0.5rem;">
+                                <line x1="18" y1="20" x2="18" y2="10"></line>
+                                <line x1="12" y1="20" x2="12" y2="4"></line>
+                                <line x1="6" y1="20" x2="6" y2="14"></line>
+                            </svg>
+                            Chart.js Visualization
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+
+</html>
